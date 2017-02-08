@@ -1,0 +1,5 @@
+
+*.zip
+data/
+beta_simulator_mac/
+sim_data/

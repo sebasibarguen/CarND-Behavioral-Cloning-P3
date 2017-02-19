@@ -3,3 +3,7 @@
 data/
 beta_simulator_mac/
 sim_data/
+
+
+__MACOSX/
+Default Mac desktop Universal.app

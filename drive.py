@@ -3,6 +3,7 @@ import base64
 from datetime import datetime
 import os
 import shutil
+import cv2
 
 import numpy as np
 import socketio
@@ -13,12 +14,14 @@ from flask import Flask
 from io import BytesIO
 
 from keras.models import load_model
+import skimage.transform as sktransform
 
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
 prev_image_array = None
 
+resize_shape = (66, 200, 3)
 
 @sio.on('telemetry')
 def telemetry(sid, data):
@@ -33,6 +36,10 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
+        image_array = image_array[60:-25, :, :]
+        image_array = cv2.resize(image_array, (resize_shape[1], resize_shape[0]), cv2.INTER_AREA)
+        image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2YUV)
+
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
         throttle = 0.2
         print(steering_angle, throttle)

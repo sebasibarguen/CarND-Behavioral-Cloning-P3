@@ -3,7 +3,10 @@
 data/
 beta_simulator_mac/
 sim_data/
-
+udacity_data/
 
 __MACOSX/
-Default Mac desktop Universal.app
+
+__pychache__
+*.pyc
+.DS_Store

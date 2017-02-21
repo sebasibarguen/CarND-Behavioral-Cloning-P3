@@ -124,3 +124,10 @@ After the collection process, I had X number of data points. I then split the da
 I used a generator to feed the data to the model. The generator also served as a control sampling method so that the data was not oversampled by data points with near 0 steering angle.
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 10 as evidenced by testing out the model with more epochs and more training data. I used an adam optimizer so that manually training the learning rate wasn't necessary.
+
+
+## Reference
+
+Vivek Yadavs Blogpost was referenced, specifically for the data transformation/augmentation helper functions
+NVidias End-To-End paper was used to build the network
+The Comma AI network is based on their open source project.

@@ -37,11 +37,7 @@ def get_commaai_model(img_shape):
     return model
 
 def get_nvidia_model(img_shape, keep_prob = 0.6):
-    """
-    Creates the comma.ai model, and returns a reference to the model
-    The comma.ai model's original source code is available at:
-    https://github.com/commaai/research/blob/master/train_steering_model.py
-    """
+
     row, col, ch = img_shape  # camera format
 
     model = Sequential()
@@ -66,29 +62,21 @@ def get_nvidia_model(img_shape, keep_prob = 0.6):
 
     return model
 
-
+# This is based on Vivek Yadav's work
 def random_shadow(image):
 
     height, width, ch = image.shape
-    # (x1, y1) and (x2, y2) forms a line
-    # xm, ym gives all the locations of the image
+
     x1, y1 = width * np.random.rand(), 0
     x2, y2 = width * np.random.rand(), height
     xm, ym = np.mgrid[0:height, 0:width]
 
-    # mathematically speaking, we want to set 1 below the line and zero otherwise
-    # Our coordinate is up side down.  So, the above the line:
-    # (ym-y1)/(xm-x1) > (y2-y1)/(x2-x1)
-    # as x2 == x1 causes zero-division problem, we'll write it in the below form:
-    # (ym-y1)*(x2-x1) - (y2-y1)*(xm-x1) > 0
     mask = np.zeros_like(image[:, :, 1])
     mask[(ym - y1) * (x2 - x1) - (y2 - y1) * (xm - x1) > 0] = 1
 
-    # choose which side should have shadow and adjust saturation
     cond = mask == np.random.randint(2)
     s_ratio = np.random.uniform(low=0.2, high=0.5)
 
-    # adjust Saturation in HLS(Hue, Light, Saturation)
     hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
     hls[:, :, 1][cond] = hls[:, :, 1][cond] * s_ratio
     return cv2.cvtColor(hls, cv2.COLOR_HLS2RGB)

@@ -10,3 +10,11 @@ __MACOSX/
 __pychache__
 *.pyc
 .DS_Store
+
+_*.h5
+
+mac_sim.app/
+
+new_data/
+run_curvy/
+full_run/

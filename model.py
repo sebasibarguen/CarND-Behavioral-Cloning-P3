@@ -36,7 +36,7 @@ def get_commaai_model(img_shape):
 
     return model
 
-def get_nvidia_model(img_shape, keep_prob = 0.6):
+def get_nvidia_model(img_shape, keep_prob = 0.5):
 
     row, col, ch = img_shape  # camera format
 
@@ -53,30 +53,38 @@ def get_nvidia_model(img_shape, keep_prob = 0.6):
     model.add(Convolution2D(64, 3, 3, activation='elu'))
     model.add(Dropout(keep_prob))
     model.add(Flatten())
+    model.add(Dense(1164, activation='elu'))
     model.add(Dense(100, activation='elu'))
     model.add(Dense(50, activation='elu'))
     model.add(Dense(10, activation='elu'))
-    model.add(Dense(1, activation='elu'))
+    model.add(Dense(1))
 
     model.compile(optimizer='adam', loss='mean_squared_error')
 
     return model
 
-# This is based on Vivek Yadav's work
 def random_shadow(image):
 
     height, width, ch = image.shape
-
+    # (x1, y1) and (x2, y2) forms a line
+    # xm, ym gives all the locations of the image
     x1, y1 = width * np.random.rand(), 0
     x2, y2 = width * np.random.rand(), height
     xm, ym = np.mgrid[0:height, 0:width]
 
+    # mathematically speaking, we want to set 1 below the line and zero otherwise
+    # Our coordinate is up side down.  So, the above the line:
+    # (ym-y1)/(xm-x1) > (y2-y1)/(x2-x1)
+    # as x2 == x1 causes zero-division problem, we'll write it in the below form:
+    # (ym-y1)*(x2-x1) - (y2-y1)*(xm-x1) > 0
     mask = np.zeros_like(image[:, :, 1])
     mask[(ym - y1) * (x2 - x1) - (y2 - y1) * (xm - x1) > 0] = 1
 
+    # choose which side should have shadow and adjust saturation
     cond = mask == np.random.randint(2)
     s_ratio = np.random.uniform(low=0.2, high=0.5)
 
+    # adjust Saturation in HLS(Hue, Light, Saturation)
     hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
     hls[:, :, 1][cond] = hls[:, :, 1][cond] * s_ratio
     return cv2.cvtColor(hls, cv2.COLOR_HLS2RGB)
@@ -144,10 +152,12 @@ def preprocessed_random_image(row, angle, root_dir):
 
     img_path = root_dir + '/' + row[j].strip()
     img = cv2.imread(img_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     img, angle = preprocess(img, angle)
 
     return img, angle
+
 
 def gen_batches(X, y, batch_size=256, training=True):
 
@@ -171,8 +181,6 @@ def gen_batches(X, y, batch_size=256, training=True):
                 else:
                     selected = True
 
-
-
             batch_images.append(img)
             batch_angles.append(angle)
 
@@ -181,18 +189,17 @@ def gen_batches(X, y, batch_size=256, training=True):
         yield batch_images, batch_angles
 
 
-
 # Parameters
 batch_size = 256
 resize_shape = (66, 200, 3)
 
-keep_prob = 0.6
+keep_prob = 0.5
 
-epochs = 10
-near_0_sampling_prob = 0.6
+epochs = 5
+near_0_sampling_prob = 0.7
 near_0_threshold = 0.03
 
-root_dir = 'data'
+root_dir = 'new_data'
 
 # Read Data
 df = pd.read_csv( root_dir + '/driving_log.csv', sep=',')
@@ -200,14 +207,19 @@ df = pd.read_csv( root_dir + '/driving_log.csv', sep=',')
 X = df[['center', 'left', 'right']].values
 y = df['steering'].values
 
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1)
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
 
-sample_multiplier = 20
+sample_multiplier = 10
 samples_per_epoch = int(sample_multiplier * X_train.shape[0] / batch_size) * batch_size
 
 
-model = get_nvidia_model(resize_shape, keep_prob)
-training_generator = gen_batches(X_train, y_train, batch_size=batch_size, training=True)
+if os.path.exists('nvidia_model.h5'):
+    print('Using existing model')
+    model = load_model('nvidia_model.h5')
+else:
+    model = get_nvidia_model(resize_shape, keep_prob)
+
+training_generator = gen_batches(X_train, y_train, batch_size=batch_size, training=False)
 validation_generator = gen_batches(X_val, y_val, batch_size=batch_size, training=False)
 history = model.fit_generator(training_generator,
                                      nb_epoch=epochs,
@@ -215,11 +227,9 @@ history = model.fit_generator(training_generator,
                                      validation_data=validation_generator,
                                      nb_val_samples=X_val.shape[0],
                                      verbose = 1
-
                                     )
 
-
-model.save('nvidia_model.h5')
+model.save('model.h5')
 
 
 ### plot the training and validation loss for each epoch

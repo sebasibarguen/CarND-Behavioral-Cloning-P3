@@ -5,7 +5,7 @@
 This project presents a deep learning model that learns to steer a car inside the Udacity simulator based on a front camera. It can be generalized to any model, although the training data is only simulated data. The model is based on the NVidia end-to-end model, it takes in an image and outputs a steering angle.
 
 An input image looks like:
-![center image][./images/center.png]
+![center image](./images/center.png)
 
 ## Method Description
 
@@ -39,7 +39,7 @@ The Keras model is based on the NVidia end-to-end model, it is composed of a nor
 
 The model includes *ELU* layers to introduce nonlinearity, and the data is normalized in the model using a Keras lambda layer. It also includes a *Dropout* layer to reduce overfitting.
 
-![model architecture][./images/architecture.png]
+![model architecture](./images/architecture.png)
 
 #### Training Strategy
 
@@ -57,19 +57,19 @@ I recorded new data to make the model run smoothly. The data included:
 
 I stumbled into multiple bugs, the one that took me a long time to figure out was using different color encodings in the `drive.py` and in the `model.py` training. After fixing all of these, the model started to perform much better.
 
-![steering distribution][./images/distribution.png]
+![steering distribution](./images/distribution.png)
 
 Given that most of the track is near straight, adding the two laps of driving just around curves helped make the steering angle distribution appear more like a normal distribution.
 
-![steering distribution][./images/new_distribution.png]
+![steering distribution](./images/new_distribution.png)
 
 In the following graph you can verify the performance of the initial model.
 
-![initial model performance][./images/initial_model_performance.png]
+![initial model performance](/images/initial_model_performance.png)
 
 The final model had the following training, validation loss performance:
 
-![final model performance][./images/final_model_performance.png]
+![final model performance](./images/final_model_performance.png)
 
 #### Model parameter tuning
 
@@ -119,11 +119,11 @@ The final model architecture consisted of a convolution neural network with the 
 
 Here is a visualization of the architecture:
 
-![architecture][./images/architecture.png]
+![architecture](./images/architecture.png)
 
 The video for the final model is:
 
-![video][./full_run.mp4]
+![video](./full_run.mp4)
 
 #### Creation of the Training Set & Training Process
 
@@ -131,11 +131,11 @@ The dataset was composed of running the simulator on the first track and recordi
 
 Here is an example of a center camera image:
 
-![center image][./images/center.png]
+![center image](./images/center.png)
 
 To augment the data sat, I employed multiple methods, including flipping the image, adding brightness, adding shadow, and translating the image. This is the transformation for one image:
 
-![image augmentation][./images/grid.png]
+![image augmentation](./images/grid.png)
 
 After the collection process, I had X number of data points. I then split the dataset into training and validation sets, with 90% used for training and 10% to validate.
 
